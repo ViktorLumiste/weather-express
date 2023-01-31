@@ -8,6 +8,9 @@ app.set('views', path.join(__dirname, 'views'))
 
 const key= '559b01018d1357db4e2132b83d795dd9'
 
+app.use(express.json())
+app.use(express.urlencoded({extended:true}))
+
 const getWeatherDataPromise = (url) =>{
     return new Promise((resolve, reject)=>{
         fetch(url)
@@ -20,13 +23,14 @@ const getWeatherDataPromise = (url) =>{
             let temp = Math.round(parseFloat(data.main.temp)-273.15)
             let result = {
                 description: description,
-                city:city,
-                temp:temp
+                city: city,
+                temp: temp,
+                error: null
             }
             resolve(result)
         })
         .catch(error => {
-            reject(error)
+            res.render('index', {error: 'Problem with getting data, try again'})
         })
     })
 }
@@ -41,20 +45,19 @@ app.all('/', function(req,res){
     }
     let url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${key}`
     getWeatherDataPromise(url)
-    .then(data => {
-        res.render('index', data)
-    })
+        .then(data => {
+            res.render('index', data)
+        })
 })
 app.get('/', function (req,res){
     let city = 'Tartu'
     let url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${key}`
     getWeatherDataPromise(url)
-    .then(data=>{
-        res.render('index', data)
-    })
+        .then(data=>{
+            res.render('index', data)
+        })
 })
-app.use(express.json())
-app.use(express.urlencoded({extended:true}))
+
 app.post('/', function (req,res){
     let city = req.body.cityname
     let url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${key}`
